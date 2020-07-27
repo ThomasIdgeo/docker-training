@@ -1,0 +1,65 @@
+# GeoNetwork
+#
+# Access via "http://localhost:8081/geonetwork"
+#
+# Default user: admin
+# Default password: admin
+
+version: '3.1'
+services:
+
+  geonetwork:
+    image: geonetwork:postgres
+    container_name: geonetwork
+    restart: always
+    ports:
+      - 8081:8080
+    environment:
+      - DATA_DIR=/var/lib/geonetwork_data
+      - POSTGRES_DB_HOST=db
+      - POSTGRES_DB_PORT=5432
+      - POSTGRES_DB_USERNAME=postgres
+      - POSTGRES_DB_PASSWORD=mysecretpassword
+    volumes:
+      - geonetwork:/var/lib/geonetwork_data
+    networks:
+      cqpgeom_net:
+        aliases:
+          - geonetwork
+
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    networks:
+      cqpgeom_net:
+        aliases:
+          - db
+
+  geoserver:
+    image: camptocamp/geoserver
+    restart: always
+    ports:
+      - 8082:8080
+    volumes:
+      - geoserver_datadir:/mnt/geoserver_datadir
+      - geoserver_geodata:/mnt/geoserver_geodata
+      - geoserver_tiles:/mnt/geoserver_tiles
+    networks:
+      cqpgeom_net:
+        aliases:
+          - geoserver
+
+volumes:
+  geonetwork:
+  postgresql_data:
+  geoserver_datadir:
+  geoserver_geodata:
+  geoserver_tiles:
+
+
+networks:
+  cqpgeom_net:

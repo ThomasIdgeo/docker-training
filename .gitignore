@@ -1,0 +1,8 @@
+latex/*.aux
+latex/*.log
+latex/*.nav
+latex/*.out
+latex/*.snm
+latex/*.synctex.gz
+latex/*.toc
+latex/*.vrb

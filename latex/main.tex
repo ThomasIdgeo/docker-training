@@ -1,0 +1,437 @@
+\documentclass[11pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{listings}
+
+\usepackage[export]{adjustbox}
+
+\lstset{
+	basicstyle=\ttfamily\scriptsize,
+	columns=fullflexible,
+	frame=single,
+	breaklines=true,
+	rulecolor=\color{lightgray},
+	literate=
+	{á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+	{Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+	{à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+	{À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+	{ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+	{Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+	{â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+	{Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+	{œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+	{ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+	{ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+	{€}{{\euro}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
+	{»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1
+}
+
+\usetheme{default}
+\begin{document}
+	\author{Jean Pommier}
+	\title{Introduction à Docker}
+	%\subtitle{}
+	%\logo{}
+	%\institute{}
+	%\date{}
+	%\subject{}
+	%\setbeamercovered{transparent}
+	%\setbeamertemplate{navigation symbols}{}
+	\begin{frame}[plain]
+	\maketitle
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}
+\frametitle{Un peu d'histoire}
+\begin{itemize}
+\item Serveurs \textit{old school} : des grosses machines dédiées à une appli
+\item Machines virtuelles (VMs) : VMWare, virtualbox, Xen, etc
+\item Cloud \& Conteneurs : souple, résilient, jetable
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Un peu d'histoire}
+\framesubtitle{Serveurs \em old school}
+\begin{itemize}
+	\item une grosse machine, plusieurs applis se partagent le système
+	\item un métier : administrateur système
+	\vspace{0.5em}
+	\item[-] Optimisation des ressources
+	\item[-] Évolutivité : \textit{scalability}
+	\item[-] Durée de mise en service
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Un peu d'histoire}
+\framesubtitle{Serveurs \em old school}
+\begin{itemize}
+	\item[] Points de vue
+	\begin{itemize}
+		\item hébergeurs : un gaspillage de ressources et un frein au développement
+		\item sysadmins : un bébé à couver. Pb de suivi de l'état des serveurs. 
+		\item développeurs : cycle de vie des applis très long. Pas la main sur le déploiement. Temps de déploiement typique : plusieurs mois.
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Un peu d'histoire}
+\framesubtitle{VMs}
+\begin{itemize}
+	\item Émulation matérielle
+	\item Une machine : plusieurs serveurs virtualisés
+	\vspace{0.5em}
+	\item[+] Optimisation des ressources
+	\item[+] Créer une nouvelle machine est assez rapide
+	\item[++] Sécurité : cloisonnement des environnements
+	\item[-] Un OS complet dans chaque machine
+	\item[-] Volumineux
+	\item[-] Attachées à une machine (déplacement lent)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Un peu d'histoire}
+\framesubtitle{VMs}
+\begin{itemize}
+	\item[] Points de vue
+	\begin{itemize}
+		\item hébergeurs : Une nette amélioration. VPS => optimisation des datacenter. + de flexibilité. Débuts du Cloud
+		\item sysadmins : Pas une grosse différence. Simplifie la sauvegarde d'un état donné de la machine. Possibilité de prendre des \textit{snapshots}
+		\item développeurs : pas de différence majeure. Déploiements potentiellement accélérés.
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Un peu d'histoire}
+\framesubtitle{Conteneurs}
+\begin{itemize}
+	\item[++] Optimisation des ressources
+	\item[++] Créer une nouvelle machine est très rapide
+	\item[+] Sécurité : Isolation relative des environnements
+	\item[++] Noyaux commun => petites images 
+	\item[++] Microservices
+	\item[+++] Iac: Infrastructure as Code. 
+	\item[-] Léger surcoût (perfs) de la couche de virtualisation
+	\item[-] Stockage : toujours un peu problématique
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Un peu d'histoire}
+\framesubtitle{Conteneurs}
+\begin{itemize}
+	\item[] Points de vue
+	\begin{itemize}
+		\item hébergeurs : Full Cloud. Vms jetables. Les serveurs deviennent "anonymes"
+		\item sysadmins : change tout. Pas de downtime toléré. Devient "devops". 
+		\item développeurs : déploiement simplifié, workflow, devops. Contrepartie : récupère parfois la charge allouée aux sysadmins. Augmentation de la complexité. Temps de déploiement typique : qq dizaines de minutes voire moins.
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Qu'est-ce que Docker ?}
+\begin{itemize}
+	\item Un produit de docker.com
+	\item Open Source
+	\item Une fonctionnalité native Linux, packagée pour la simplicité d'utilisation
+	\item Images 
+	\begin{itemize}
+		\item incrémentielles (Overlay FS) -> réutilisation ! Gain de place
+		\item immutables
+		\item définies via un fichier Dockerfile => IaC
+	\end{itemize}
+	\item réseau
+	\begin{itemize}
+		\item facilité de définir plusieurs réseaux
+		\item sécurise facilement les backends
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Qu'est-ce que Docker ?}
+\framesubtitle{Ecosystème : autour de Docker}
+\begin{itemize}
+	\item Docker hub (\url{https://hub.docker.com/})
+	\item Orchestrateurs : (docker-compose), Swarm, Kubernetes, k3c
+	\item Outils de gestion de l'infrastructure : Terraform, Rancher, Portainer
+	\item Normalisation : OCI (\textit{Open Container Initiative})
+	\item Des alternatives : containerd, 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Quand utiliser Docker ?}
+\framesubtitle{Il fait tout... sauf le café}
+\begin{itemize}
+	\item Serveurs
+	\begin{itemize}
+		\item production (\textit{on-premise}, Cloud)
+		\item developpement (facilite la reproduction d'un env. de prod en dev)
+		\item tester des applis serveur (ex. geOrchestra)
+	\end{itemize}
+	\item local : lancer un serveur de BD, un serveur web, en une commande
+	\item devops
+	\begin{itemize}
+		\item Compiler une app (\textit{2-stage build})
+		\item Automated testing
+		\item Deployment
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\section{Installation}
+
+\begin{frame}
+\frametitle{Installer Docker}
+\framesubtitle{Où ça devient sérieux...}
+\begin{itemize}
+	\item Linux : \textit{RTFM} (\url{https://www.docker.com/get-started})
+	\item Windows
+	\begin{itemize}
+		\item Docker Desktop for Windows
+		\item Redémarrer. Attendre (démarrage Docker très long)
+		\item WSL2 (Windows 10 update 2004)
+		\item Redémarrer. Attendre.
+		\item Redémarrer. Attendre.   ;o)
+		\item WSL2  -> \textbf{docker desktop + Linux}
+	\end{itemize}
+	\item Mac OS : Docker Desktop ?
+\end{itemize}
+\end{frame}
+
+\section{Pratique}
+
+\begin{frame}[fragile]
+\frametitle{Docker pratique : les mains dans le cambouis }
+\framesubtitle{Restons simple : un serveur nginx}
+\begin{itemize}
+	\item Restons traditionnels : 
+	\begin{lstlisting}
+docker run hello-world	
+	\end{lstlisting}
+	\item Un serveur web rapide : 
+	\begin{lstlisting}
+docker run -it --rm -p 82:80 nginx
+	\end{lstlisting}
+	\item ... avec du contenu : 
+	\begin{lstlisting}
+docker run -it --rm  -p 82:80 \
+-v /home/jean/www:/usr/share/nginx/html nginx
+	\end{lstlisting}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Docker pratique : les mains dans le cambouis }
+\framesubtitle{Analysons un peu}
+\begin{itemize}
+	\item Téléchargement des images depuis dockerhub
+	\item \verb|-p| : correspondance de ports
+	\item \verb|-v| : monter un volume
+	\item \verb|--rm| : détruire le conteneur à la sortie
+	\item \verb|docker run --help|
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Docker pratique : les mains dans le cambouis }
+\framesubtitle{Allons un peu plus loin}
+\begin{itemize}
+	\item relançons notre conteneur : 
+	\begin{lstlisting}
+docker run -it --rm  -p 82:80 --name nginx \
+-v /home/jean/www:/usr/share/nginx/html nginx
+	\end{lstlisting}
+	\item on va entrer dans le conteneur. Dans une autre console, lancer
+	\begin{lstlisting}
+docker exec -it  nginx /bin/bash
+	\end{lstlisting}
+	\item \verb|docker inspect|, un outil bien utile quand la documentation fait défaut
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Docker pratique : les mains dans le cambouis }
+\framesubtitle{Bases de données facile}
+\begin{itemize}
+	\item on peut lancer un serveur de BD sans effort : 
+	\begin{lstlisting}
+docker run -it --rm  -p 3306:3306 --name mysql mariadb:10.4
+	\end{lstlisting}
+	\item Quel volume monter pour persister les données ?
+	\begin{lstlisting}
+docker image inspect --format "{{{{.Config.Volumes}}}}" \
+mariadb:10.4
+	\end{lstlisting}
+	\item Un serveur PostgreSQL ? Facile. Quelle version vous voulez ?
+	\begin{lstlisting}
+docker run -it --rm  -p 15432:5432 --name pg \ 
+-v /tmp/pgdata:/var/lib/postgresql/data postgres:11
+	\end{lstlisting}
+	\item Vous voulez aussi un PostgreSQL version 9.3 à côté ?
+	\begin{lstlisting}
+docker run -it --rm  -p 15433:5432 --name pg-9.3 \
+-v /tmp/pgdata-9.3:/var/lib/postgresql/data postgres:9.3
+	\end{lstlisting}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Docker pratique : les mains dans le cambouis }
+\framesubtitle{Bases de données facile (suite)}
+\begin{itemize}
+	\item Vous voulez du PostGIS ?
+	TODO: regarder l'ajout des extensions, cf dockerhub
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Docker pratique : les mains dans le cambouis }
+\framesubtitle{Lancer un serveur carto}
+\begin{itemize}
+	\item On peut utiliser une image fournie par la communauté
+	\begin{lstlisting}
+docker run -it --rm  -p 8085:8080 --name geoserver \
+-v /tmp/geoserver_datadir:/mnt/geoserver_datadir   \
+-v /tmp/geoserver_geodata:/mnt/geoserver_geodata \
+pigeosolutions/geoserver:2.15.3
+	\end{lstlisting}
+	\item On peut interconnecter la BD PostGIS  et GeoServer
+	\begin{lstlisting}
+docker run -it --rm  -p 8085:8080 --name geoserver \
+-v /tmp/geoserver_datadir:/mnt/geoserver_datadir \
+-v /tmp/geoserver_geodata:/mnt/geoserver_geodata \
+--link pgis \
+pigeosolutions/geoserver:2.15.3
+	\end{lstlisting}
+\end{itemize}
+\end{frame}
+
+\section{docker-compose}
+
+\begin{frame}[fragile]
+\frametitle{docker-compose}
+\framesubtitle{Les bases de l'orchestration}
+\begin{itemize}
+	\item publier les ports sur localhost et lier les conteneurs a ses limites
+	\item les commandes deviennent très longues
+	\item la solution : \textbf{docker-compose}
+	\begin{itemize}
+		\item tout est écrit dans un fichier texte (yml) 
+		\item config persistée, 
+		\item versionnable, 
+		\item autodocumentéé
+		\item IaC
+		\item documente facilement un moyen de tester une solution
+		\begin{itemize}
+			\item wp
+			\item georchestra
+			\item lizmap
+		\end{itemize}
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{docker-compose}
+\framesubtitle{Les bases de l'orchestration}
+TODO : get a working docker-compose
+\begin{lstlisting}
+version: '3.1'
+networks:
+  cqpgeom_net:
+
+volumes:
+  pgdata:
+
+services:
+  nginx-proxy:
+image: nginx
+ports:
+- "80:80"
+volumes:
+- ./nginx/nginx.conf:/etc/nginx/nginx.conf
+- ./nginx_html:/html
+networks:
+cqpgeom_net:
+aliases:
+- nginx
+restart: unless-stopped
+php:
+image: pigeosolutions/php:7-fpm-alpine-pgsql
+volumes:
+- ./nginx_html:/html
+networks:
+cqpgeom_net:
+aliases:
+- php
+geoserver:
+image: pigeosolutions/geoserver:2.15.3-win
+ports:
+- "8085:8080"
+volumes:
+- ./geoserver_datadir:/mnt/geoserver_datadir
+- ./geoserver_geodata:/mnt/geoserver_geodata
+networks:
+cqpgeom_net:
+aliases:
+- geoserver
+restart: unless-stopped
+
+postgis:
+image: pigeosolutions/padre-postgis:latest
+ports:
+- "5433:5432"
+environment:
+- PGDATA=/var/lib/postgresql/data/pgdata
+- POSTGRES_DB=postgis
+- POSTGRES_USER=jean
+- POSTGRES_PASSWORD=pass
+volumes:
+- pgdata:/var/lib/postgresql/data/pgdata
+networks:
+cqpgeom_net:
+aliases:
+- postgis
+restart: unless-stopped
+\end{lstlisting}
+\end{frame}
+
+\section{Dockerfile}
+
+\begin{frame}[fragile]
+\frametitle{Dockerfile}
+\framesubtitle{Construire son image}
+\begin{itemize}
+	\item Fichier texte
+	\item définit le contenu de l'image
+	\item compilation : \verb|docker build -t jeanpommier/monimage .|
+	\item qq commandes principales:
+	\begin{description}
+		\item[FROM] le point de départ. On construit sur l'existant
+		\item[RUN]  exécute une commande (dans la VM). Permet d'installer des librairies, dézipper une archive, bouger/supprimer des fichiers etc
+		\item[COPY] copie des fichiers depuis l'ordi
+		\item[ADD]  idem, mais permet aussi de copier depuis une URL
+		
+	\end{description}
+	\item[]		Nombreuses autres instructions, cf doc dockerfile TODO get the url
+\end{itemize}
+\end{frame}
+
+
+
+
+\end{document}
+

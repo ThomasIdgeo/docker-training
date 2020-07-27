@@ -1,0 +1,26 @@
+version: '3.1'
+services:
+  db:
+    image: jeanpommier/postgis:v1
+    build: ./dockerfiles/postgis_v1
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+  geoserver:
+    image: pigeosolutions/geoserver:latest
+    build: ./dockerfiles/geoserver
+    restart: always
+    ports:
+      - 8085:8080
+    volumes:
+      - geoserver_datadir:/mnt/geoserver_datadir
+      - geoserver_geodata:/mnt/geoserver_geodata
+      - geoserver_tiles:/mnt/geoserver_tiles
+
+volumes:
+  postgresql_data:
+  geoserver_datadir:
+  geoserver_geodata:
+  geoserver_tiles:

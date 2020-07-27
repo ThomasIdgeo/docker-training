@@ -176,7 +176,7 @@ Un conteneur par service. Une application sera typiquement découpée en plusieu
 	\item Orchestrateurs : (docker-compose), Swarm, Kubernetes, k3c
 	\item Outils de gestion de l'infrastructure : Terraform, Rancher, Portainer
 	\item Normalisation : OCI (\textit{Open Container Initiative})
-	\item Des alternatives : containerd, 
+	\item Des alternatives : containerd, LXC, rkt, etc
 \end{itemize}
 \end{frame}
 
@@ -245,13 +245,18 @@ docker run -it --rm  -p 82:80 \
 
 \begin{frame}[fragile]
 \frametitle{Docker pratique : les mains dans le cambouis }
+\includegraphics[width=400px]{imgs/docker-run.png}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Docker pratique : les mains dans le cambouis }
 \framesubtitle{Analysons un peu}
 \begin{itemize}
-	\item Téléchargement des images depuis dockerhub
-	\item \verb|-p| : correspondance de ports
-	\item \verb|-v| : monter un volume
-	\item \verb|--rm| : détruire le conteneur à la sortie
-	\item \verb|docker run --help|
+\item Téléchargement des images depuis dockerhub
+\item \verb|-p| : correspondance de ports
+\item \verb|-v| : monter un volume
+\item \verb|--rm| : détruire le conteneur à la sortie
+\item \verb|docker run --help|
 \end{itemize}
 \end{frame}
 
@@ -300,33 +305,141 @@ docker run -it --rm  -p 15433:5432 --name pg-9.3 \
 
 \begin{frame}[fragile]
 \frametitle{Docker pratique : les mains dans le cambouis }
-\framesubtitle{Bases de données facile (suite)}
+\framesubtitle{Lancer un serveur carto}
 \begin{itemize}
-	\item Vous voulez du PostGIS ?
-	TODO: regarder l'ajout des extensions, cf dockerhub
+\item On peut utiliser une image fournie par la communauté
+\begin{lstlisting}
+docker run -it --rm  -p 8085:8080 --name geoserver \
+-v /tmp/geoserver_datadir:/mnt/geoserver_datadir   \
+-v /tmp/geoserver_geodata:/mnt/geoserver_geodata \
+pigeosolutions/geoserver:2.15.3
+\end{lstlisting}
+\item On peut interconnecter la BD PostgreSQL  et GeoServer
+\begin{lstlisting}
+docker run -it --rm  -p 8085:8080 --name geoserver \
+-v /tmp/geoserver_datadir:/mnt/geoserver_datadir \
+-v /tmp/geoserver_geodata:/mnt/geoserver_geodata \
+--link pg \
+pigeosolutions/geoserver:2.15.3
+\end{lstlisting}
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Docker pratique : les mains dans le cambouis }
-\framesubtitle{Lancer un serveur carto}
+\framesubtitle{Bases de données facile (suite)}
+	Vous voulez du PostGIS ?
+	\vspace{2em}
+	
+	Il est temps de fabriquer notre propre image
+\end{frame}
+
+
+\section{Dockerfile}
+
+\begin{frame}[fragile]
+\frametitle{Dockerfile}
+\framesubtitle{Construire son image}
 \begin{itemize}
-	\item On peut utiliser une image fournie par la communauté
-	\begin{lstlisting}
-docker run -it --rm  -p 8085:8080 --name geoserver \
--v /tmp/geoserver_datadir:/mnt/geoserver_datadir   \
--v /tmp/geoserver_geodata:/mnt/geoserver_geodata \
-pigeosolutions/geoserver:2.15.3
-	\end{lstlisting}
-	\item On peut interconnecter la BD PostGIS  et GeoServer
-	\begin{lstlisting}
+	\item Fichier texte
+	\item définit le contenu de l'image
+	\item compilation : \verb|docker build -t jeanpommier/monimage .|
+	\item qq commandes principales:
+	\begin{description}
+		\item[FROM] le point de départ. On construit sur l'existant
+		\item[RUN]  exécute une commande (dans la VM). Permet d'installer des librairies, dézipper une archive, bouger/supprimer des fichiers etc
+		\item[COPY] copie des fichiers depuis l'ordi
+		\item[ADD]  idem, mais permet aussi de copier depuis une URL
+		
+	\end{description}
+	\item[]		Nombreuses autres instructions, cf \url{https://docs.docker.com/engine/reference/builder/}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Dockerfile}
+\framesubtitle{CMD et ENTRYPOINT}
+TODO: réviser les notions
+\begin{description}
+\item[CMD] la commande lancée par le conteneur au démarrage
+\begin{itemize}
+	\item format bash
+	\item format liste. TODO: différence
+\end{itemize}
+\item[ENTRYPOINT] permet notamment de lancer des scripts d'init
+\end{description}
+
+Entrypoints sophistiqués : utilisation de run-parts. Exemple, PostgreSQL
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Dockerfile}
+\framesubtitle{Créer une image PostGIS : v1}
+\begin{lstlisting}[title=Dockerfile]
+FROM postgres:12
+
+RUN apt-get update && apt-get install postgis -y
+# Include datastore setup scripts
+COPY ./docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
+\end{lstlisting}
+
+\begin{lstlisting}[title=fichier entrypoint]
+CREATE EXTENSION POSTGIS;
+\end{lstlisting}
+\begin{lstlisting}[title=console]
+docker build -t jeanpommier/postgis:v1 ./postgis_v1/
+docker run -d -it --rm -p 5432:5432 -e POSTGRES_PASSWORD=passwd \
+--name pgis jeanpommier/postgis:v1
+psql -U postgres -h localhost -p 5432 -d postgres
+postgres=# SELECT PostGIS_full_version();
+docker stop pgis
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Dockerfile}
+\framesubtitle{Créer une image PostGIS : v2}
+On suit la doc, qui pointe vers un exemple plus complet : 
+\url{https://github.com/postgis/docker-postgis/blob/4eb614133d6aa87bfc5c952d24b7eb1f499e5c7c/12-3.0/Dockerfile}
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
+FROM postgres:12
+
+LABEL maintainer="PostGIS Project - https://postgis.net"
+
+ENV POSTGIS_MAJOR 2.5
+ENV POSTGIS_VERSION 2.5.4+dfsg-1.pgdg100+1
+
+RUN apt-get update \
+&& apt-cache showpkg postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR \
+&& apt-get install -y --no-install-recommends \
+postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR=$POSTGIS_VERSION \
+postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR-scripts=$POSTGIS_VERSION \
+&& rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /docker-entrypoint-initdb.d
+COPY ./initdb-postgis.sh /docker-entrypoint-initdb.d/10_postgis.sh
+COPY ./update-postgis.sh /usr/local/bin
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Docker pratique : les mains dans le cambouis}
+\framesubtitle{GeoServer + PostGIS}
+On peut interconnecter plusieurs conteneurs
+
+\begin{lstlisting}
+docker run -d -it --rm -p 5432:5432 -e POSTGRES_PASSWORD=passwd \
+--name pgis jeanpommier/postgis:v1
+\end{lstlisting}
+
+On peut interconnecter la BD PostgreSQL  et GeoServer
+\begin{lstlisting}
 docker run -it --rm  -p 8085:8080 --name geoserver \
 -v /tmp/geoserver_datadir:/mnt/geoserver_datadir \
 -v /tmp/geoserver_geodata:/mnt/geoserver_geodata \
 --link pgis \
 pigeosolutions/geoserver:2.15.3
-	\end{lstlisting}
-\end{itemize}
+\end{lstlisting}
 \end{frame}
 
 \section{docker-compose}
@@ -357,114 +470,29 @@ pigeosolutions/geoserver:2.15.3
 
 \begin{frame}[fragile]
 \frametitle{docker-compose}
-\framesubtitle{Les bases de l'orchestration}
-TODO : get a working docker-compose
+\framesubtitle{GeoServer + PostGIS}
+\lstinputlisting[numbers=left]{../compos/gs.yml}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{docker-compose}
+\framesubtitle{Inclure les infos de compilation}
 \begin{lstlisting}
 version: '3.1'
-networks:
-  cqpgeom_net:
-
-volumes:
-  pgdata:
-
 services:
-  nginx-proxy:
-image: nginx
-ports:
-- "80:80"
-volumes:
-- ./nginx/nginx.conf:/etc/nginx/nginx.conf
-- ./nginx_html:/html
-networks:
-cqpgeom_net:
-aliases:
-- nginx
-restart: unless-stopped
-php:
-image: pigeosolutions/php:7-fpm-alpine-pgsql
-volumes:
-- ./nginx_html:/html
-networks:
-cqpgeom_net:
-aliases:
-- php
-geoserver:
-image: pigeosolutions/geoserver:2.15.3-win
-ports:
-- "8085:8080"
-volumes:
-- ./geoserver_datadir:/mnt/geoserver_datadir
-- ./geoserver_geodata:/mnt/geoserver_geodata
-networks:
-cqpgeom_net:
-aliases:
-- geoserver
-restart: unless-stopped
+  db:
+    image: jeanpommier/postgis:v1
+    build: ./dockerfiles/postgis_v1
+    environment:
+...
 
-postgis:
-image: pigeosolutions/padre-postgis:latest
-ports:
-- "5433:5432"
-environment:
-- PGDATA=/var/lib/postgresql/data/pgdata
-- POSTGRES_DB=postgis
-- POSTGRES_USER=jean
-- POSTGRES_PASSWORD=pass
-volumes:
-- pgdata:/var/lib/postgresql/data/pgdata
-networks:
-cqpgeom_net:
-aliases:
-- postgis
-restart: unless-stopped
+  geoserver:
+    image: pigeosolutions/geoserver:latest
+    build: ./dockerfiles/geoserver
+...
+    
 \end{lstlisting}
 \end{frame}
-
-\section{Dockerfile}
-
-\begin{frame}[fragile]
-\frametitle{Dockerfile}
-\framesubtitle{Construire son image}
-\begin{itemize}
-	\item Fichier texte
-	\item définit le contenu de l'image
-	\item compilation : \verb|docker build -t jeanpommier/monimage .|
-	\item qq commandes principales:
-	\begin{description}
-		\item[FROM] le point de départ. On construit sur l'existant
-		\item[RUN]  exécute une commande (dans la VM). Permet d'installer des librairies, dézipper une archive, bouger/supprimer des fichiers etc
-		\item[COPY] copie des fichiers depuis l'ordi
-		\item[ADD]  idem, mais permet aussi de copier depuis une URL
-		
-	\end{description}
-	\item[]		Nombreuses autres instructions, cf doc dockerfile TODO get the url
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Dockerfile}
-\framesubtitle{CMD et ENTRYPOINT}
-	TODO: réviser les notions
-\begin{description}
-	\item[CMD] la commande lancée par le conteneur au démarrage
-	\begin{itemize}
-		\item format bash
-		\item format liste. TODO: différence
-	\end{itemize}
-	\item[ENTRYPOINT] permet notamment de lancer des scripts d'init
-\end{description}
-
-Entrypoints sophistiqués : utilisation de run-parts. Exemple, PostgreSQL
-
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Dockerfile}
-\framesubtitle{Exemples}
-GeoServer
-
-\end{frame}
-
 
 
 

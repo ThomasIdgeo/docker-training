@@ -1,0 +1,6 @@
+[submodule "compos/dockerfiles/geoserver"]
+	path = compos/dockerfiles/geoserver
+	url = git@github.com:pi-geosolutions/docker-geoserver.git
+[submodule "compos/qgisserver"]
+	path = compos/qgisserver
+	url = git@github.com:jeanpommier/qgis-server.git

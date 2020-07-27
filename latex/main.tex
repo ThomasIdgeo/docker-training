@@ -114,6 +114,15 @@
 \begin{frame}
 \frametitle{Un peu d'histoire}
 \framesubtitle{Conteneurs}
+\textbf{Conteneurs} : on allège autant que possible le concept de VM : on utilise le noyau du système hôte et on n'encapsule que le strict nécessaire pour faire tourner l'application.
+\vspace{2em}
+
+Un conteneur par service. Une application sera typiquement découpée en plusieurs conteneurs Docker (BD, serveur web, etc)
+\end{frame}
+
+\begin{frame}
+\frametitle{Un peu d'histoire}
+\framesubtitle{Conteneurs}
 \begin{itemize}
 	\item[++] Optimisation des ressources
 	\item[++] Créer une nouvelle machine est très rapide
@@ -200,7 +209,8 @@
 	\item Linux : \textit{RTFM} (\url{https://www.docker.com/get-started})
 	\item Windows
 	\begin{itemize}
-		\item Docker Desktop for Windows
+		\item Docker Desktop for Windows : 
+		\url{https://docs.docker.com/docker-for-windows/install/}
 		\item Redémarrer. Attendre (démarrage Docker très long)
 		\item WSL2 (Windows 10 update 2004)
 		\item Redémarrer. Attendre.
@@ -329,8 +339,9 @@ pigeosolutions/geoserver:2.15.3
 	\item les commandes deviennent très longues
 	\item la solution : \textbf{docker-compose}
 	\begin{itemize}
-		\item tout est écrit dans un fichier texte (yml) 
-		\item config persistée, 
+		\item assemble la compo dans un fichier texte (yml) 
+		\item \textit{As Code} : config persistée dans un fichier
+		\item permet de démarrer tous les conteneurs à la fois : \verb|docker-compose up|
 		\item versionnable, 
 		\item autodocumentéé
 		\item IaC
@@ -429,6 +440,32 @@ restart: unless-stopped
 	\item[]		Nombreuses autres instructions, cf doc dockerfile TODO get the url
 \end{itemize}
 \end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Dockerfile}
+\framesubtitle{CMD et ENTRYPOINT}
+	TODO: réviser les notions
+\begin{description}
+	\item[CMD] la commande lancée par le conteneur au démarrage
+	\begin{itemize}
+		\item format bash
+		\item format liste. TODO: différence
+	\end{itemize}
+	\item[ENTRYPOINT] permet notamment de lancer des scripts d'init
+\end{description}
+
+Entrypoints sophistiqués : utilisation de run-parts. Exemple, PostgreSQL
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Dockerfile}
+\framesubtitle{Exemples}
+GeoServer
+
+\end{frame}
+
+
 
 
 

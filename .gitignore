@@ -6,3 +6,4 @@ latex/*.snm
 latex/*.synctex.gz
 latex/*.toc
 latex/*.vrb
+tmp/*

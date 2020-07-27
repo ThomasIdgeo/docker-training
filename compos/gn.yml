@@ -7,7 +7,6 @@
 
 version: '3.1'
 services:
-
   geonetwork:
     image: geonetwork:postgres
     container_name: geonetwork
@@ -22,10 +21,6 @@ services:
       - POSTGRES_DB_PASSWORD=mysecretpassword
     volumes:
       - geonetwork:/var/lib/geonetwork_data
-    networks:
-      cqpgeom_net:
-        aliases:
-          - geonetwork
 
   db:
     image: postgres
@@ -34,10 +29,6 @@ services:
       - POSTGRES_PASSWORD=mysecretpassword
     volumes:
       - postgresql_data:/var/lib/postgresql/data
-    networks:
-      cqpgeom_net:
-        aliases:
-          - db
 
   geoserver:
     image: camptocamp/geoserver
@@ -48,10 +39,6 @@ services:
       - geoserver_datadir:/mnt/geoserver_datadir
       - geoserver_geodata:/mnt/geoserver_geodata
       - geoserver_tiles:/mnt/geoserver_tiles
-    networks:
-      cqpgeom_net:
-        aliases:
-          - geoserver
 
 volumes:
   geonetwork:
@@ -59,7 +46,3 @@ volumes:
   geoserver_datadir:
   geoserver_geodata:
   geoserver_tiles:
-
-
-networks:
-  cqpgeom_net:

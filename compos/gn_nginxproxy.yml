@@ -15,16 +15,14 @@ services:
     volumes:
       - ./confs/nginx.conf:/etc/nginx/nginx.conf
     networks:
-      backend
-      frontend
+      - backend
+      - frontend
     restart: unless-stopped
 
   geonetwork:
     image: geonetwork:postgres
     container_name: geonetwork
     restart: always
-    ports:
-      - 8081:8080
     environment:
       - DATA_DIR=/var/lib/geonetwork_data
       - POSTGRES_DB_HOST=db
@@ -34,7 +32,7 @@ services:
     volumes:
       - geonetwork:/var/lib/geonetwork_data
     networks:
-      backend
+      - backend
 
   db:
     image: postgres
@@ -44,10 +42,10 @@ services:
     volumes:
       - postgresql_data:/var/lib/postgresql/data
     networks:
-      backend
+      - backend
 
   geoserver:
-    image: camptocamp/geoserver
+    image: pigeosolutions/geoserver:latest
     restart: always
     ports:
       - 8082:8080
@@ -56,7 +54,8 @@ services:
       - geoserver_geodata:/mnt/geoserver_geodata
       - geoserver_tiles:/mnt/geoserver_tiles
     networks:
-      backend
+      - backend
+      - frontend
 
 volumes:
   geonetwork:

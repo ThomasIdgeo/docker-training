@@ -471,13 +471,13 @@ pigeosolutions/geoserver:2.15.3
 \begin{frame}[fragile]
 \frametitle{docker-compose}
 \framesubtitle{GeoServer + PostGIS}
-\lstinputlisting[numbers=left]{../compos/gs.yml}
+\lstinputlisting[numbers=left,basicstyle=\ttfamily\tiny]{../compos/gs.yml}
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{docker-compose}
 \framesubtitle{Inclure les infos de compilation}
-\begin{lstlisting}
+\begin{lstlisting}[title=gs.yml]
 version: '3.1'
 services:
   db:
@@ -492,9 +492,26 @@ services:
 ...
     
 \end{lstlisting}
+\begin{lstlisting}[title=console]
+docker-compose -f compos/gs.yml build
+docker-compose -f compos/gs.yml up -d
+\end{lstlisting}
+
 \end{frame}
 
-
+\begin{frame}[fragile]
+\frametitle{docker-compose}
+\framesubtitle{Quelques commandes utiles}
+\begin{itemize}
+	\item verb|docker-compose up|
+	\item verb|docker-compose build|
+	\item verb|docker-compose ps|
+	\item verb|docker-compose logs| : avec l'option -f, suit les logs en temps réel
+	\item verb|docker-compose exec|
+	\item verb|docker-compose down -v| : supprime les volumes
+	\item verb|docker-compose --help|
+\end{itemize}
+\end{frame}
 
 
 

@@ -1,6 +1,6 @@
 [submodule "compos/dockerfiles/geoserver"]
 	path = compos/dockerfiles/geoserver
-	url = git@github.com:pi-geosolutions/docker-geoserver.git
+	url = https://github.com/pi-geosolutions/docker-geoserver.git
 [submodule "compos/qgisserver"]
 	path = compos/qgisserver
-	url = git@github.com:jeanpommier/qgis-server.git
+	url = https://github.com/jeanpommier/qgis-server.git

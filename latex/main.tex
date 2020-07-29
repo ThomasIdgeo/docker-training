@@ -43,6 +43,7 @@
 	%\setbeamertemplate{navigation symbols}{}
 	\begin{frame}[plain]
 	\maketitle
+	\scriptsize disponible sur \url{https://github.com/jeanpommier/docker-training/}
 \end{frame}
 
 \section{Introduction}
@@ -359,12 +360,11 @@ pigeosolutions/geoserver:2.15.3
 \begin{frame}[fragile]
 \frametitle{Dockerfile}
 \framesubtitle{CMD et ENTRYPOINT}
-TODO: réviser les notions
 \begin{description}
 \item[CMD] la commande lancée par le conteneur au démarrage
 \begin{itemize}
 	\item format bash
-	\item format liste. TODO: différence
+	\item format liste
 \end{itemize}
 \item[ENTRYPOINT] permet notamment de lancer des scripts d'init
 \end{description}
